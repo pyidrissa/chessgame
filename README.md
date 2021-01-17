@@ -1,6 +1,6 @@
 # chessgame
 A simple chess game has been developped in an educationnal purpose to improve my python skills.
-For this project, no chess packages has been used. I completely wrote the chessEngine from scratch. There are two versions: 
+For this project, no chess packages has been used. I completely wrote the chessEngine from scratch. There are two versions of the chess engine: 
   - 'ChessEngineA' is a more advanced algorithm
   - 'ChessEngineB' is a more simple algorithm
 
