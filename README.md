@@ -7,7 +7,7 @@ For this project, no chess packages has been used. I completely wrote the chessE
   This chess engine determine the valid moves by checking if every chess pawns can put the opponent king in check.
 
 For the UI part, the python package pygame has been used. That will allow to manage the mouse event.
-And Finally for the AI part has been written by applying the the Minimax and the NegaMax algorithms and finally adding the alpha beta pruning to both algorithm (source: https://www.youtube.com/watch?v=l-hh51ncgDI ).
+And Finally for the AI part has been written by applying the the Minimax and the NegaMax algorithms and finally adding the alpha beta pruning to both algorithm ( https://www.youtube.com/watch?v=l-hh51ncgDI ). All the algorithms are in this project, however, the NegaMax with alpha beta is the one used by default.
 
 
 This project wouldn't been possible without the help of Eddie Sharick, a youtuber. The link to his videos is:
