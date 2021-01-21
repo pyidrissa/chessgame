@@ -12,6 +12,7 @@ pieceScore = {
             } 
 CHECKMATE = 99999 #If we manage to get a ChekMate
 STALEMATE = 0 #Because it is not a case that we want
+DEPTH = 3
 
 
 '''
@@ -111,7 +112,8 @@ def find_random_move(valid_moves):
 '''
 Find the best move based on material alone
 '''
-def find_best_moves(gs, valid_moves):
+
+def find_best_moves_noRecursion(gs, valid_moves):
     '''
     Function that will apply a Minimax algorithm (Greedy Algorithm) to the list of valid movements 
     based on material alone
@@ -126,23 +128,31 @@ def find_best_moves(gs, valid_moves):
     turn_multiplier = 1 if gs.whiteToMove else -1 
     opponent_MinMax_score = CHECKMATE #for black perspective
     best_player_move = None
-    #r.shuffle(valid_moves)
+    r.shuffle(valid_moves)
     for player_move in valid_moves:  
         gs.make_move(player_move) #the AI make his move
         opponent_moves = gs.get_valid_moves() #possible moves for the opponent after the AI moved
-        opponent_max_score = -CHECKMATE #set the opponent max move score to a very low value
-        for opponent_move in opponent_moves: #i am trying to find the max value of the opponent moves
-            gs.make_move(opponent_move) #the opponent makes his move
-            if gs.checkMate:
-                score = -turn_multiplier * CHECKMATE
-            elif gs.staleMate:
-                score = STALEMATE
-            else:
-                score = -turn_multiplier * score_material(gs.board)
-            if score > opponent_max_score : #IS it larger than the max value gathered so far?
-                opponent_max_score = score #if so, that become my max value
-            gs.undo_move() #undo the opponent move
-
+        if gs.checkMate:
+            opponent_max_score = -CHECKMATE
+        elif gs.staleMate:
+            opponent_max_score = STALEMATE
+        else:        
+            opponent_max_score = -CHECKMATE #set the opponent max move score to a very low value
+            for opponent_move in opponent_moves: #i am trying to find the max value of the opponent moves
+                gs.make_move(opponent_move) #the opponent makes his move
+                gs.get_valid_moves() 
+                # we need to generate all the possible moves in order to determine when
+                # we are in a checkMAte or StaleMate states
+                if gs.checkMate:
+                    score = CHECKMATE
+                elif gs.staleMate:
+                    score = STALEMATE
+                else:
+                    score = -turn_multiplier * score_material(gs.board)
+                if score > opponent_max_score : #IS it larger than the max value gathered so far?
+                    opponent_max_score = score #if so, that become my max value
+                gs.undo_move() #undo the opponent move
+            
         if opponent_max_score < opponent_MinMax_score: #if the max oppoenent respond to my move
             #If the max opponent respond to my move is lower than the their previous best score
             #That value, become now their MinMax value that i want to minimize
@@ -153,6 +163,207 @@ def find_best_moves(gs, valid_moves):
     
     return best_player_move
 
+'''
+Helper method to make the first recursive call
+'''
+def find_best_moves(gs, valid_moves):
+    '''
+    Function that will call the initial recursive call and return the result at the end
+    '''
+    global next_move
+    next_move = None
+    #find_move_MinMax(gs, valid_moves, DEPTH, gs.whiteToMove)
+    #find_move_MinMax_alpha_beta(gs, valid_moves, DEPTH, -CHECKMATE, CHECKMATE, gs.whiteToMove)
+    #find_move_NegaMax(gs, valid_moves, DEPTH)
+    find_move_NegaMax_alpha_beta(gs, valid_moves, DEPTH, -CHECKMATE, CHECKMATE)
+
+    return next_move
+
+'''
+Recursive function to find the best move
+'''
+def find_move_MinMax(gs, valid_moves, depth, whiteToMove):
+    '''
+    depth: represent how deep we want the AI go look forward
+    '''
+    global next_move
+    if depth == 0: 
+        return score_board(gs)
+    if whiteToMove:
+        max_score = -CHECKMATE
+        for move in valid_moves:
+            gs.make_move(move)
+            next_moves = gs.get_valid_moves()
+            score = find_move_MinMax(gs,next_moves, depth-1, False) #False = not whiteToMove
+            if score > max_score:
+                max_score = score
+                if depth == DEPTH:  #when we have look for all the lower branches 
+                                    #(depth 0, 1, ..., DEPTH)
+                    next_move = move #THE best move to make
+            gs.undo_move()
+        return max_score
+
+    else:
+        min_score = CHECKMATE
+        for move in valid_moves:
+            gs.make_move(move)
+            next_moves = gs.get_valid_moves()
+            score = find_move_MinMax(gs,next_moves, depth-1, True) #True = whiteToMove
+            if score < min_score:
+                min_score = score
+                if depth == DEPTH:  #when we have look for all the lower branches 
+                                    #(depth 0, 1, ..., DEPTH)
+                    next_move = move #THE best move to make
+            gs.undo_move()
+        return min_score
+
+def find_move_NegaMax(gs,valid_moves,depth):
+    '''
+    Function that will apply the negamax algorithm to simplify the coding of the minimax 
+    algorithm. The 'color' parameter will make the script alternate between each color.
+    color = 1 for the first player and -1 for the opponent. 
+    Negamax algorithm relies on the fact that max(player1) = -min(-player2).
+    Thus, simplify the implementation of the minimax algorithm
+    '''
+    global next_move
+    
+    color = 1 if gs.whiteToMove else -1
+    if depth == 0: 
+        return color * score_board(gs) 
+    max_score = -CHECKMATE
+    r.shuffle(valid_moves)
+    for move in valid_moves:
+        gs.make_move(move)
+        next_moves = gs.get_valid_moves()
+        score = - find_move_NegaMax(gs,next_moves, depth-1)
+        if score > max_score:
+            max_score = score
+            if depth == DEPTH:  #when we have look for all the lower branches 
+                                #(depth 0, 1, ..., DEPTH)
+                next_move = move #THE best move to make
+        gs.undo_move()
+    return max_score
+
+def find_move_NegaMax_alpha_beta(gs,valid_moves,depth, alpha, beta):
+    '''
+    Function that will apply the negamax algorithm to simplify the coding of the minimax 
+    algorithm. The 'color' parameter will make the script alternate between each color.
+    color = 1 for the first player and -1 for the opponent. 
+    Negamax algorithm relies on the fact that max(player1) = -min(-player2).
+    Thus, simplify the implementation of the minimax algorithm
+    '''
+    global next_move
+    
+    color = 1 if gs.whiteToMove else -1
+    if depth == 0: 
+        return color * score_board(gs) 
+    max_score = -CHECKMATE
+    r.shuffle(valid_moves)
+    for move in valid_moves:
+        gs.make_move(move)
+        next_moves = gs.get_valid_moves()
+        score = - find_move_NegaMax_alpha_beta(gs,next_moves, depth-1, -beta, -alpha)
+        #we need to call beta instead of alpha to alternate their values.
+        if score > max_score:
+            max_score = score
+            if depth == DEPTH:  #when we have look for all the lower branches 
+                                #(depth 0, 1, ..., DEPTH)
+                next_move = move #THE best move to make
+        gs.undo_move()
+
+        if score > alpha:
+            alpha = score
+            if alpha >= beta:
+                break
+        
+
+    return max_score
+
+def find_move_MinMax_alpha_beta(gs, valid_moves, depth, alpha, beta, whiteToMove):
+    '''
+    This function will apply the minimax algorithm with the alpha-beta pruning
+        alpha : worst case value for white
+        beta : worst case value for black
+    '''
+    global next_move
+    if depth == 0: 
+        return score_board(gs)
+    if whiteToMove:
+        max_score = -CHECKMATE
+        for move in valid_moves:
+            gs.make_move(move)
+            next_moves = gs.get_valid_moves()
+            score = find_move_MinMax_alpha_beta(gs,next_moves, depth-1, alpha, beta, False) #False = not whiteToMove
+            if score > max_score:
+                max_score = score
+                if depth == DEPTH:  #when we have look for all the lower branches 
+                                    #(depth 0, 1, ..., DEPTH)
+                    next_move = move #THE best move to make            
+            gs.undo_move()
+
+            alpha = max(alpha, score)
+            if beta <= alpha:
+                break
+
+        return max_score
+
+    else:
+        min_score = CHECKMATE
+        for move in valid_moves:
+            gs.make_move(move)
+            next_moves = gs.get_valid_moves()
+            score = find_move_MinMax_alpha_beta(gs,next_moves, depth-1, alpha, beta, True) #True = whiteToMove
+            if score < min_score:
+                min_score = score
+                if depth == DEPTH:  #when we have look for all the lower branches 
+                                    #(depth 0, 1, ..., DEPTH)
+                    next_move = move #THE best move to make            
+            gs.undo_move()
+
+            beta = min(beta, score)
+            if beta <= alpha:
+                break
+
+        return min_score
+
+'''
+Functions to score the board
+'''
+def score_board(gs):
+    '''
+    Function that will evaluate the board completely
+        1) positif score : good for white -> white winning
+        2) negatif score : good for black -> black is winning
+    '''
+    #1) checking the terminal node
+    #By checking the checkMate and staleMate states in the 'score_board' function, we don't  
+    #need to check it in the 'find_best_moves' function
+    if gs.checkMate:
+    #There is no need to calculate the score of the board if we are in a checkMate state
+        if gs.whiteToMove:
+            return -CHECKMATE #black wins
+        else:
+            return CHECKMATE #white wins
+    elif gs.staleMate:
+        return STALEMATE
+
+    #2) Evaluate the board
+    score = 0
+    #What is good for white is bad for black and what is good for black is bad for white
+    for row in range(len(gs.board)): #loop among the rows in the board
+        for col in range(len(gs.board[row])):  #loop in each col in a row
+            piece_type = gs.board[row][col][1] #letter of the piece
+            color_piece = gs.board[row][col][0]
+            if color_piece == 'w':
+                #we'll sum the pieceScore with the position weight of the piece
+                # !! use the white position matrix !!!
+                score += (pieceScore[piece_type] + pst_w[piece_type][row][col])
+            elif color_piece == 'b':
+                #we'll sum the pieceScore with the position weight of the piece
+                # !! use the black position matrix !!!
+                score -= (pieceScore[piece_type] + pst_b[piece_type][row][col])
+    
+    return score
 
 '''
 Score the board vased on the material
