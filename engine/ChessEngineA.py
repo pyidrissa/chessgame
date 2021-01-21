@@ -157,9 +157,9 @@ class GameState():
                     self.board[move.endRow][move.endCol-2] = self.board[move.endRow][move.endCol+1]
                     self.board[move.endRow][move.endCol+1] = '--'
 
-            #UNDO the AI board evaluation
-            #self.ai.adjust_board_values(move.pieceCaptured, move.startRow, move.startCol, move.endRow, move.endCol, move.pieceMoved, undo = True)
-            #self.ai.undo_board_value(move.pieceMoved, move.startRow, move.startCol, move.endRow, move.endCol, move.pieceCaptured)
+            #RESET the checkMate and staleMate status when we undo a move
+            self.checkMate = False
+            self.staleMate = False
 
         self.moveMade = False
 
