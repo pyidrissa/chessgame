@@ -10,9 +10,7 @@ import random as r
 import pygame as p
 import engine.ChessEngineA as ChessEngine
 import ai.chessAI as ChessAI
-#from Chess import ChessEngine
 
-# WIDTH = 812 #WIDTH of the game
 WIDTH = HEIGHT = 512 #HEIGHT of the game
 DIMENSION = 8 #dimension of a chess board are 8x8
 SQ_SIZE = HEIGHT // DIMENSION
@@ -94,13 +92,13 @@ def main():
                         if not move_made:
                             player_clicks = [sq_selected]   # set the current click at the position of 
                                                             # the set of two clicks we need to make           
-
             #key handler
             elif e.type == p.KEYDOWN:
                 if e.key == p.K_z: #undo when 'z' is pressed
                     gs.undo_move()               
                     move_made = True
                     animate = False
+                    game_over = False
                 if e.key == p.K_r: #reset the board when r is pressed
                     gs = ChessEngine.GameState() #reinitialise the gameState
                     valid_moves = gs.get_valid_moves()
@@ -108,24 +106,25 @@ def main():
                     player_clicks = []
                     move_made = False
                     animate = False
+                    game_over = False
 
         #AI MOVE (ARTIFICIAL INTELLIGENCE FOR MY CHESS GAME)
         if not game_over and not human_turn: #AI play black 
             AI_valid_moves = gs.get_valid_moves()
             AI_move = ChessAI.find_best_moves(gs, AI_valid_moves) 
-            if AI_move is None: 
+            if AI_move is None: #IF no best move
                 turn_color = 'white' if gs.whiteToMove else 'black'
-                print(turn_color ," -> make a random move")                 
+                print(turn_color ," -> random move made")                 
                 AI_move = ChessAI.find_random_move(valid_moves)
             gs.make_move(AI_move)
-
             move_made = True 
             animate = True
 
         # FOR THE DRAWING BOARD PART
         if move_made:
             if animate:
-                animated_move(gs.moveLog[-1], screen, gs.board, clock) #we are making the move with the last element in the move log
+                animated_move(gs.moveLog[-1], screen, gs.board, clock) 
+                #we are making the move with the last element in the move log
             valid_moves = gs.get_valid_moves()
             move_made = False
             animate = False
@@ -187,7 +186,7 @@ def draw_board(screen):
     Draw the squares on the board. The top legt square is always light
     '''
     global colors
-    colors = [p.Color("white"), p.Color("grey")]
+    colors = [p.Color(227,193,111), p.Color(184,139,74)] #(light case, dark case)
     for raw in range (DIMENSION):
         for column in range (DIMENSION):
             color = colors[((raw + column) % 2)]
