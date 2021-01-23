@@ -12,7 +12,6 @@ pieceScore = {
             } 
 CHECKMATE = 99999 #If we manage to get a ChekMate
 STALEMATE = 0 #Because it is not a case that we want
-DEPTH = 3
 
 
 '''
@@ -166,12 +165,15 @@ def find_best_moves_noRecursion(gs, valid_moves):
 '''
 Helper method to make the first recursive call
 '''
-def find_best_moves(gs, valid_moves):
+def find_best_moves(gs, valid_moves, depth):
     '''
     Function that will call the initial recursive call and return the result at the end
     '''
     global next_move
+    global DEPTH
+
     next_move = None
+    DEPTH = depth
     #find_move_MinMax(gs, valid_moves, DEPTH, gs.whiteToMove)
     #find_move_MinMax_alpha_beta(gs, valid_moves, DEPTH, -CHECKMATE, CHECKMATE, gs.whiteToMove)
     #find_move_NegaMax(gs, valid_moves, DEPTH)
