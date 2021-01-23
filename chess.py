@@ -17,6 +17,7 @@ SQ_SIZE = HEIGHT // DIMENSION
 MAX_FPS = 15 #for animation later on
 IMAGES = {}
 
+
 '''
 Initialize a global dictionary of images. This will be called exactly once in the main
 '''
@@ -26,16 +27,22 @@ def load_images():
     '''
     pieces = ["bp","bR", "bN", "bB", "bQ", "bK", "wp","wR", "wN", "wB", "wQ", "wK"]
     for piece in pieces:
-        IMAGES[piece] = p.transform.scale(p.image.load("images/" + piece + ".png"),(SQ_SIZE,SQ_SIZE))
+        IMAGES[piece] = p.transform.scale(p.image.load("images/1/" + piece + ".png"),(SQ_SIZE,SQ_SIZE))
     #Note: we can access an image by saving 'IMAGES['wp']
 
 '''
 The main driver for our code. This will handle user input and updating the graphics
 '''
-def main():
+def main(P_WHITE, P_BLACK, DEPTH):
     '''
     This function is the main function, launching the chess game
     The main driver for our code. This will handle user input and updating the graphics    
+
+    INPUT
+    ------    
+    1) P_WHITE = Boolean (if we are playing White or Not)
+    2) P_BLACK = Boolean (if we are playing Black or Not)
+    3) DEPTH = integer (layer level for the chessAI)
     '''
     p.init()
     screen = p.display.set_mode((WIDTH,HEIGHT))
@@ -51,9 +58,9 @@ def main():
     player_clicks = [] #keeptrack of player clicks: (1) select the element to move locate a the position (6,4) and 
                        #(2) select the destination position (4,4)  (two tuples : [(6,4), (4,4)])
     game_over = False
-    playerOne = True    # If a Human is playing -> White, then this will be True.
+    playerOne = P_WHITE    # If a Human is playing -> White, then this will be True.
                         # IF an AI is playing, then False
-    playerTwo = False  # Same as above but for black
+    playerTwo = P_BLACK # Same as above but for black
 
 
     while running: 
@@ -111,7 +118,7 @@ def main():
         #AI MOVE (ARTIFICIAL INTELLIGENCE FOR MY CHESS GAME)
         if not game_over and not human_turn: #AI play black 
             AI_valid_moves = gs.get_valid_moves()
-            AI_move = ChessAI.find_best_moves(gs, AI_valid_moves) 
+            AI_move = ChessAI.find_best_moves(gs, AI_valid_moves, DEPTH) 
             if AI_move is None: #IF no best move
                 turn_color = 'white' if gs.whiteToMove else 'black'
                 print(turn_color ," -> random move made")                 
@@ -248,4 +255,4 @@ def draw_text(screen, text):
 
     
 if __name__ == "__main__":
-    main()
+    main(P_WHITE = False, P_BLACK = False, DEPTH = 3)
